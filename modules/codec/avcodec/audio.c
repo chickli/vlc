@@ -230,7 +230,8 @@ static aout_buffer_t *SplitBuffer( decoder_t *p_dec )
 {
     decoder_sys_t *p_sys = p_dec->p_sys;
     int i_samples = __MIN( p_sys->i_samples, 4096 );
-    aout_buffer_t *p_buffer;
+    int sample_planar=0;
+    block_t *p_buffer;
 
     if( i_samples == 0 ) return NULL;
 
@@ -241,15 +242,25 @@ static aout_buffer_t *SplitBuffer( decoder_t *p_dec )
     p_buffer->i_length = date_Increment( &p_sys->end_date, i_samples )
                          - p_buffer->i_pts;
 
+    sample_planar = av_sample_fmt_is_planar( p_sys->p_context->sample_fmt );
+    if( sample_planar )
+        aout_Interleave( p_buffer->p_buffer, p_sys->p_samples, i_samples, p_sys->p_context->channels, p_dec->fmt_out.audio.i_format );
+
     if( p_sys->b_extract )
+    {
+        if( sample_planar )
+            memcpy( p_sys->p_samples, p_buffer->p_buffer, p_buffer->i_buffer );
+
         aout_ChannelExtract( p_buffer->p_buffer, p_dec->fmt_out.audio.i_channels,
                              p_sys->p_samples, p_sys->p_context->channels, i_samples,
                              p_sys->pi_extraction, p_dec->fmt_out.audio.i_bitspersample );
-    else
+    }
+    else if (!sample_planar)
         memcpy( p_buffer->p_buffer, p_sys->p_samples, p_buffer->i_buffer );
 
     p_sys->p_samples += i_samples * p_sys->p_context->channels * ( p_dec->fmt_out.audio.i_bitspersample / 8 );
     p_sys->i_samples -= i_samples;
+
 
     return p_buffer;
 }
@@ -421,23 +432,27 @@ void GetVlcAudioFormat( vlc_fourcc_t *pi_codec, unsigned *pi_bits, int i_sample_
     switch( i_sample_fmt )
     {
     case AV_SAMPLE_FMT_U8:
+    case AV_SAMPLE_FMT_U8P:
         *pi_codec = VLC_CODEC_U8;
         *pi_bits = 8;
         break;
     case AV_SAMPLE_FMT_S32:
+    case AV_SAMPLE_FMT_S32P:
         *pi_codec = VLC_CODEC_S32N;
         *pi_bits = 32;
         break;
     case AV_SAMPLE_FMT_FLT:
+    case AV_SAMPLE_FMT_FLTP:
         *pi_codec = VLC_CODEC_FL32;
         *pi_bits = 32;
         break;
     case AV_SAMPLE_FMT_DBL:
+    case AV_SAMPLE_FMT_DBLP:
         *pi_codec = VLC_CODEC_FL64;
         *pi_bits = 64;
         break;
-
     case AV_SAMPLE_FMT_S16:
+    case AV_SAMPLE_FMT_S16P:
     default:
         *pi_codec = VLC_CODEC_S16N;
         *pi_bits = 16;
