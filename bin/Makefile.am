@@ -49,7 +49,7 @@ vlc_LDADD += -lpsapi -lwininet vlc_win32_rc.$(OBJEXT)
 vlc_DEPENDENCIES = vlc_win32_rc.$(OBJEXT)
 else
 vlc_LDADD += $(LIBDL)
-vlc_static_LDFLAGS += -no-install -static
+vlc_static_LDFLAGS += -no-install
 endif
 
 vlc_win32_rc.rc: $(top_builddir)/config.status vlc_win32_rc.rc.in
