@@ -244,7 +244,10 @@ static aout_buffer_t *SplitBuffer( decoder_t *p_dec )
 
     sample_planar = av_sample_fmt_is_planar( p_sys->p_context->sample_fmt );
     if( sample_planar )
+    {
+    	msg_Dbg( p_dec, "Interleaving output buffer", p_sys->i_output_max );
         aout_Interleave( p_buffer->p_buffer, p_sys->p_samples, i_samples, p_sys->p_context->channels, p_dec->fmt_out.audio.i_format );
+    }
 
     if( p_sys->b_extract )
     {
