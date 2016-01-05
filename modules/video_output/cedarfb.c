@@ -256,6 +256,10 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
 {
     cedarx_picture_t pic;
     vout_display_sys_t *sys = vd->sys;
+    int display_x = var_InheritInteger (vd, "video-x");
+    int display_y = var_InheritInteger (vd, "video-y");
+    unsigned display_width  = vd->cfg->display.width;
+    unsigned display_height = vd->cfg->display.height;
 
     VLC_UNUSED(subpicture);
 
@@ -263,11 +267,10 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
         memset(&pic, 0, sizeof(cedarx_picture_t));
         pic.width = picture->format.i_width;
         pic.height = picture->format.i_height;
-        pic.top_offset = picture->format.i_x_offset;
-        pic.left_offset = picture->format.i_y_offset;
-        pic.display_width = picture->format.i_visible_width;
-        pic.display_height = picture->format.i_visible_height;
-        pic.display_height = picture->format.i_visible_height;
+        pic.top_offset = display_x;
+        pic.left_offset = display_y;
+        pic.display_width = display_width;
+        pic.display_height = display_height;
     	pic.y[0] = picture->p[0].p_pixels;                      
     	pic.u[0] = picture->p[1].p_pixels;                      
         pic.size_y[0] = picture->p[0].i_pitch * picture->p[0].i_lines;
