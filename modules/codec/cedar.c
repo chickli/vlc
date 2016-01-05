@@ -52,6 +52,9 @@ vlc_module_begin ()
     set_capability("decoder", 0)
     set_callbacks(OpenDecoder, CloseDecoder)
     add_shortcut("cedar")
+
+    add_integer ("cedar-rotation", 0, "Video Rotation Angle", "Video rotation angel from decoder side",
+            false )
 vlc_module_end ()
 
 /*****************************************************************************
@@ -294,6 +297,9 @@ static int OpenDecoder(vlc_object_t *p_this)
     info.container = CEDARX_CONTAINER_FORMAT_UNKNOW;
     info.width = p_dec->fmt_in.video.i_width;
     info.height = p_dec->fmt_in.video.i_height;
+    info.rot = var_CreateGetInteger(p_dec, "cedar-rotation");
+    msg_Info(p_dec, "Using decoder rotation %d degree on cedar", info.rot);
+
     if (!info.data && !info.data_size) {
         info.data = p_dec->fmt_in.p_extra;
         info.data_size = p_dec->fmt_in.i_extra;
