@@ -273,17 +273,13 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
         pic.left_offset = picture->format.i_x_offset;
         pic.display_width = picture->format.i_visible_width;
         pic.display_height = picture->format.i_visible_height;
-        pic.screen_x = display_x;
-        pic.screen_y = display_y;
-        pic.screen_width = display_width;
-        pic.screen_height = display_height;
     	pic.y[0] = picture->p[0].p_pixels;                      
     	pic.u[0] = picture->p[1].p_pixels;                      
         pic.size_y[0] = picture->p[0].i_pitch * picture->p[0].i_lines;
         pic.size_u[1] = picture->p[1].i_pitch * picture->p[1].i_lines;
         pic.pts = picture->date;
         pic.frame_rate = picture->format.i_frame_rate * 1000 / picture->format.i_frame_rate_base;
-        libcedarx_display_video_frame(&pic);
+        libcedarx_display_video_frame(&pic, display_x, display_y, display_width, display_height);
         if (sys->cur) {
             picture_Release(sys->cur);
         }
