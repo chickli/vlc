@@ -59,6 +59,7 @@ vlc_module_begin ()
     set_description(N_("Cedar video output"))
     set_capability("vout display", 30)
     set_callbacks(Open, Close)
+
 vlc_module_end ()
 
 /*****************************************************************************
@@ -264,15 +265,18 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
     VLC_UNUSED(subpicture);
 
     if (sys->last != picture) {
-        msg_Dbg( vd, "Display picture using (%d, %d, %d, %d)",
-                display_x, display_y, display_width, display_height);
+        msg_Dbg(vd, "Prepare picture: (%d, %d, %d, %d)@(%d, %d)",
+                picture->format.i_width, picture->format.i_height, picture->format.i_visible_width, picture->format.i_visible_height, 
+                picture->format.i_x_offset, picture->format.i_y_offset);
         memset(&pic, 0, sizeof(cedarx_picture_t));
-        pic.width = picture->format.i_width;
-        pic.height = picture->format.i_height;
+        pic.width = picture->format.i_visible_width;//picture->format.i_width;
+        pic.height = picture->format.i_visible_height;//picture->format.i_height;
         pic.top_offset = picture->format.i_y_offset;
         pic.left_offset = picture->format.i_x_offset;
         pic.display_width = picture->format.i_visible_width;
         pic.display_height = picture->format.i_visible_height;
+        pic.top_offset = picture->format.i_y_offset;
+        pic.left_offset = picture->format.i_x_offset;
     	pic.y[0] = picture->p[0].p_pixels;                      
     	pic.u[0] = picture->p[1].p_pixels;                      
         pic.size_y[0] = picture->p[0].i_pitch * picture->p[0].i_lines;
@@ -280,6 +284,10 @@ static void Display(vout_display_t *vd, picture_t *picture, subpicture_t *subpic
         pic.pts = picture->date;
         pic.frame_rate = picture->format.i_frame_rate * 1000 / picture->format.i_frame_rate_base;
         libcedarx_display_video_frame(&pic, display_x, display_y, display_width, display_height);
+        msg_Dbg( vd, "Displayed picture: (%d, %d, %d, %d)@(%d, %d)->(%d, %d)@(%d, %d), pitch and line: (%d, %d)&(%d, %d)",
+                pic.width, pic.height, pic.display_width, pic.display_height, pic.left_offset, pic.top_offset, 
+                display_width, display_height, display_x, display_y,  
+                picture->p[0].i_pitch, picture->p[0].i_lines, picture->p[1].i_pitch, picture->p[1].i_lines);
         if (sys->cur) {
             picture_Release(sys->cur);
         }
